@@ -37,9 +37,9 @@ const DNABackground = () => {
               }}
               style={{ transformStyle: "preserve-3d" }}
             >
-              <div className="w-4 h-4 bg-white/90 rounded-full shadow-[0_0_15px_rgba(255,255,255,0.8)]"></div>
-              <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-white/40 to-transparent absolute left-0 top-1/2 -z-10 -translate-y-1/2"></div>
-              <div className="w-4 h-4 bg-white/90 rounded-full shadow-[0_0_15px_rgba(255,255,255,0.8)]"></div>
+              <div className="w-4 h-4 bg-primary/90 rounded-full shadow-[0_0_15px_hsl(var(--primary)_/_0.8)]"></div>
+              <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-primary/40 to-transparent absolute left-0 top-1/2 -z-10 -translate-y-1/2"></div>
+              <div className="w-4 h-4 bg-primary/90 rounded-full shadow-[0_0_15px_hsl(var(--primary)_/_0.8)]"></div>
             </motion.div>
           )
         })}
@@ -107,9 +107,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-slate-950 font-sans selection:bg-blue-500/30">
-      {/* Visual Identity Section */}
-      <div className="hidden lg:flex flex-col justify-center items-center p-12 bg-slate-900 border-r border-white/5 relative overflow-hidden">
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-background font-sans selection:bg-primary/30">
+      <div className="hidden lg:flex flex-col justify-center items-center p-12 bg-card border-r border-border relative overflow-hidden">
         <DNABackground />
         
         <div className="relative z-10 w-full max-w-md">
@@ -118,8 +117,8 @@ export default function LoginPage() {
             animate={{ opacity: 1, y: 0 }}
             className="flex items-center gap-4 mb-12"
           >
-            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-2xl shadow-blue-500/20">H</div>
-            <h1 className="text-4xl font-extrabold text-white tracking-tighter">HouseMedi<span className="text-blue-500">.</span></h1>
+            <div className="w-14 h-14 bg-gradient-to-br from-primary to-primary/70 rounded-2xl flex items-center justify-center text-primary-foreground font-bold text-2xl shadow-2xl shadow-primary/20">H</div>
+            <h1 className="text-4xl font-extrabold text-foreground tracking-tighter">HouseMedi<span className="text-primary">.</span></h1>
           </motion.div>
 
           <motion.div
@@ -128,9 +127,9 @@ export default function LoginPage() {
             transition={{ delay: 0.2 }}
             className="space-y-8"
           >
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] p-8 space-y-6">
-              <h2 className="text-3xl font-bold text-white leading-tight">Advanced Clinical Intelligence</h2>
-              <p className="text-slate-400 leading-relaxed font-medium">PathRad AI engine for high‑fidelity clinical diagnostics and multi‑agent medical orchestration.</p>
+            <div className="bg-muted/50 backdrop-blur-xl border border-border rounded-[32px] p-8 space-y-6">
+              <h2 className="text-3xl font-bold text-foreground leading-tight">Advanced Clinical Intelligence</h2>
+              <p className="text-muted-foreground leading-relaxed font-medium">PathRad AI engine for high‑fidelity clinical diagnostics and multi‑agent medical orchestration.</p>
               
               <div className="space-y-4 pt-4">
                 {[
@@ -138,29 +137,28 @@ export default function LoginPage() {
                   { icon: <Activity className="w-5 h-5" />, text: "Real-time AI Diagnostic Pipeline" },
                   { icon: <BrainCircuit className="w-5 h-5" />, text: "Multi-Model Inference (MedGemma 4B)" }
                 ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-4 text-slate-300">
-                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">{item.icon}</div>
+                  <div key={i} className="flex items-center gap-4 text-foreground/80">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">{item.icon}</div>
                     <span className="text-sm font-bold tracking-tight">{item.text}</span>
                   </div>
                 ))}
               </div>
             </div>
             
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] pl-4">Systems Status: <span className="text-green-500">Operational</span></p>
+            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.2em] pl-4">Systems Status: <span className="text-primary">Operational</span></p>
           </motion.div>
         </div>
       </div>
 
-      {/* Authentication Section */}
-      <div className="flex flex-col justify-center items-center p-6 lg:p-12 bg-slate-950 relative">
+      <div className="flex flex-col justify-center items-center p-6 lg:p-12 bg-background relative">
         <div className="w-full max-w-sm">
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="text-center lg:text-left mb-10"
           >
-            <h2 className="text-3xl font-bold text-white mb-2">{isLogin ? "Welcome Back, Clinician" : "Join PathRad AI"}</h2>
-            <p className="text-slate-500 font-medium">{isLogin ? "Enter your credentials to access the diagnostic portal" : "Register your clinical credentials to begin analysis"}</p>
+            <h2 className="text-3xl font-bold text-foreground mb-2">{isLogin ? "Welcome Back, Clinician" : "Join PathRad AI"}</h2>
+            <p className="text-muted-foreground font-medium">{isLogin ? "Enter your credentials to access the diagnostic portal" : "Register your clinical credentials to begin analysis"}</p>
           </motion.div>
 
           <AnimatePresence mode="wait">
@@ -175,13 +173,13 @@ export default function LoginPage() {
               {!isLogin && (
                 <>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Full Clinical Name</label>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Full Clinical Name</label>
                     <div className="relative">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <input 
                         type="text" required 
                         placeholder="Dr. John Doe"
-                        className="w-full bg-slate-900 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-slate-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                        className="w-full bg-card border border-border rounded-2xl py-4 pl-12 pr-4 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                         value={fullName} onChange={(e) => setFullName(e.target.value)}
                       />
                     </div>
@@ -189,12 +187,12 @@ export default function LoginPage() {
 
                   <div className="grid grid-cols-1 gap-5">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Registry Specialization</label>
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Registry Specialization</label>
                       <div className="relative">
-                        <Stethoscope className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                        <Stethoscope className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <select 
                           required 
-                          className="w-full bg-slate-900 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white appearance-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                          className="w-full bg-card border border-border rounded-2xl py-4 pl-12 pr-4 text-foreground appearance-none focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                           value={specialization} onChange={(e) => setSpecialization(e.target.value)}
                         >
                           <option value="">Select Specialization</option>
@@ -204,11 +202,11 @@ export default function LoginPage() {
                     </div>
                     
                     <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Medical License ID</label>
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Medical License ID</label>
                       <input 
                         type="text" required 
                         placeholder="LIC-123456"
-                        className="w-full bg-slate-900 border border-white/5 rounded-2xl py-4 px-4 text-white placeholder:text-slate-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                        className="w-full bg-card border border-border rounded-2xl py-4 px-4 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                         value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)}
                       />
                     </div>
@@ -217,26 +215,26 @@ export default function LoginPage() {
               )}
 
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Email Registry</label>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Email Registry</label>
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input 
                     type="email" required 
                     placeholder="doctor@housemedi.com"
-                    className="w-full bg-slate-900 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-slate-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                    className="w-full bg-card border border-border rounded-2xl py-4 pl-12 pr-4 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                     value={email} onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Security Key</label>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Security Key</label>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input 
                     type="password" required 
                     placeholder="••••••••"
-                    className="w-full bg-slate-900 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-slate-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                    className="w-full bg-card border border-border rounded-2xl py-4 pl-12 pr-4 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                     value={password} onChange={(e) => setPassword(e.target.value)}
                   />
                 </div>
@@ -246,9 +244,9 @@ export default function LoginPage() {
                 <motion.div 
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className="bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold p-4 rounded-2xl flex items-center gap-3"
+                  className="bg-destructive/10 border border-destructive/20 text-destructive text-xs font-bold p-4 rounded-2xl flex items-center gap-3"
                 >
-                  <div className="w-5 h-5 rounded-lg bg-red-500/20 flex items-center justify-center shrink-0">!</div>
+                  <div className="w-5 h-5 rounded-lg bg-destructive/20 flex items-center justify-center shrink-0">!</div>
                   {error}
                 </motion.div>
               )}
@@ -256,7 +254,7 @@ export default function LoginPage() {
               <Button 
                 type="submit" 
                 disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold h-14 rounded-2xl transition-all shadow-xl shadow-blue-600/20 text-md relative overflow-hidden group"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-14 rounded-2xl transition-all shadow-xl shadow-primary/20 text-md relative overflow-hidden group"
               >
                 {loading ? <Loader2 className="animate-spin w-5 h-5 mx-auto" /> : (
                   <span className="flex items-center justify-center gap-2">
@@ -267,12 +265,12 @@ export default function LoginPage() {
             </motion.form>
           </AnimatePresence>
 
-          <div className="mt-12 pt-8 border-t border-white/5 text-center">
-            <p className="text-slate-500 text-sm font-medium">
+          <div className="mt-12 pt-8 border-t border-border text-center">
+            <p className="text-muted-foreground text-sm font-medium">
               {isLogin ? "Need a clinical profile?" : "Already registered?"}{" "}
               <button 
                 onClick={() => setIsLogin(!isLogin)}
-                className="text-white hover:text-blue-500 font-bold transition-colors underline underline-offset-4 decoration-blue-500/50"
+                className="text-foreground hover:text-primary font-bold transition-colors underline underline-offset-4 decoration-primary/50"
               >
                 {isLogin ? "Create account" : "Sign in to portal"}
               </button>
@@ -281,9 +279,8 @@ export default function LoginPage() {
         </div>
       </div>
       
-      {/* Decorative gradient blur */}
-      <div className="absolute top-0 right-0 w-1/4 h-1/4 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-indigo-600/5 rounded-full blur-[150px] pointer-events-none" />
+      <div className="absolute top-0 right-0 w-1/4 h-1/4 bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-primary/5 rounded-full blur-[150px] pointer-events-none" />
     </div>
   )
 }

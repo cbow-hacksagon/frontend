@@ -1,57 +1,84 @@
 @import "tailwindcss";
+@import "@copilotkit/react-core/v2/styles.css";
 @custom-variant dark (&:where(.dark, .dark *));
 
+@theme {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #0a0a0a;
-
-  --card: #ffffff;
-  --card-foreground: #0a0a0a;
-  --primary: #171717;
-  --primary-foreground: #fafafa;
-  --secondary: #f5f5f5;
-  --secondary-foreground: #171717;
-  --muted: #f5f5f5;
-  --muted-foreground: #737373;
-  --accent: #f5f5f5;
-  --accent-foreground: #171717;
-  --destructive: #dc2626;
-  --destructive-foreground: #fafafa;
-  --border: #e5e5e5;
-  --input: #e5e5e5;
-  --ring: #171717;
-
+  --background: 140 20% 99%;
+  --foreground: 140 30% 8%;
+  --card: 140 20% 100%;
+  --card-foreground: 140 30% 8%;
+  --popover: 140 20% 100%;
+  --popover-foreground: 140 30% 8%;
+  --primary: 160 84% 35%;
+  --primary-foreground: 160 100% 98%;
+  --secondary: 140 10% 95%;
+  --secondary-foreground: 140 30% 12%;
+  --muted: 140 10% 95%;
+  --muted-foreground: 140 8% 45%;
+  --accent: 160 40% 95%;
+  --accent-foreground: 160 84% 25%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 140 15% 88%;
+  --input: 140 15% 88%;
+  --ring: 160 84% 35%;
   --radius: 0.75rem;
 
   --cpk-default-font-family: var(--font-body);
-
   --font-body: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
 :root.dark {
-  --background: #0a0a0a;
-  --foreground: #fafafa;
-
-  --card: #0a0a0a;
-  --card-foreground: #fafafa;
-  --primary: #fafafa;
-  --primary-foreground: #171717;
-  --secondary: #262626;
-  --secondary-foreground: #fafafa;
-  --muted: #262626;
-  --muted-foreground: #a3a3a3;
-  --accent: #262626;
-  --accent-foreground: #fafafa;
-  --destructive: #dc2626;
-  --destructive-foreground: #fafafa;
-  --border: #262626;
-  --input: #262626;
-  --ring: #d4d4d4;
+  --background: 140 33% 7%;
+  --foreground: 140 15% 96%;
+  --card: 140 28% 9%;
+  --card-foreground: 140 15% 96%;
+  --popover: 140 28% 9%;
+  --popover-foreground: 140 15% 96%;
+  --primary: 160 84% 39%;
+  --primary-foreground: 160 100% 98%;
+  --secondary: 140 20% 14%;
+  --secondary-foreground: 140 15% 96%;
+  --muted: 140 15% 15%;
+  --muted-foreground: 140 8% 55%;
+  --accent: 160 60% 15%;
+  --accent-foreground: 160 84% 65%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 140 20% 18%;
+  --input: 140 20% 18%;
+  --ring: 160 84% 39%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
   font-family: var(--font-body);
 }
 
@@ -63,4 +90,57 @@ html {
 /* Hide Next.js dev overlay FAB */
 nextjs-portal {
   display: none;
+}
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background-color: hsl(var(--muted-foreground) / 0.2); border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: hsl(var(--muted-foreground) / 0.4); }
+
+/* Override CopilotKit oklch defaults with our Emerald HSL theme */
+[data-copilotkit] {
+  --background: hsl(var(--background));
+  --foreground: hsl(var(--foreground));
+  --card: hsl(var(--card));
+  --card-foreground: hsl(var(--card-foreground));
+  --popover: hsl(var(--popover));
+  --popover-foreground: hsl(var(--popover-foreground));
+  --primary: hsl(var(--primary));
+  --primary-foreground: hsl(var(--primary-foreground));
+  --secondary: hsl(var(--secondary));
+  --secondary-foreground: hsl(var(--secondary-foreground));
+  --muted: hsl(var(--muted));
+  --muted-foreground: hsl(var(--muted-foreground));
+  --accent: hsl(var(--accent));
+  --accent-foreground: hsl(var(--accent-foreground));
+  --destructive: hsl(var(--destructive));
+  --destructive-foreground: hsl(var(--destructive-foreground));
+  --border: hsl(var(--border));
+  --input: hsl(var(--input));
+  --ring: hsl(var(--ring));
+  --radius: var(--radius);
+}
+
+.dark [data-copilotkit] {
+  --background: hsl(var(--background));
+  --foreground: hsl(var(--foreground));
+  --card: hsl(var(--card));
+  --card-foreground: hsl(var(--card-foreground));
+  --popover: hsl(var(--popover));
+  --popover-foreground: hsl(var(--popover-foreground));
+  --primary: hsl(var(--primary));
+  --primary-foreground: hsl(var(--primary-foreground));
+  --secondary: hsl(var(--secondary));
+  --secondary-foreground: hsl(var(--secondary-foreground));
+  --muted: hsl(var(--muted));
+  --muted-foreground: hsl(var(--muted-foreground));
+  --accent: hsl(var(--accent));
+  --accent-foreground: hsl(var(--accent-foreground));
+  --destructive: hsl(var(--destructive));
+  --destructive-foreground: hsl(var(--destructive-foreground));
+  --border: hsl(var(--border));
+  --input: hsl(var(--input));
+  --ring: hsl(var(--ring));
+  --radius: var(--radius);
 }

@@ -1,7 +1,5 @@
 "use client";
 
-import "@copilotkit/react-core/v2/styles.css";
-
 import { CopilotKit } from "@copilotkit/react-core";
 import { ThemeProvider } from "@/lib/copilotkit/theme-provider";
 
