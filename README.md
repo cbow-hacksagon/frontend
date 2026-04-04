@@ -1,4 +1,10 @@
+<<<<<<< Updated upstream
 # HouseMedi -
+=======
+# HouseMedi - Patient-First Clinical Registry
+
+A modern, patient-centric clinical management system designed for doctors to manage subjects, document medical notes, and store clinical assets (X-rays, Blood reports, Lab results).
+>>>>>>> Stashed changes
 
 ## 🚀 Getting Started
 
