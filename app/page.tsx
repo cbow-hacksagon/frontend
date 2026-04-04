@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { 
   Users, X, Search, 
-  Menu, Loader2
+  Menu, Loader2, MessageSquare
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/utils/supabase/client"
@@ -188,7 +188,16 @@ function DoctorDashboard() {
                                </td>
                                <td className="px-8 py-5 text-sm font-bold text-muted-foreground italic">{p.location || "Global Registry"}</td>
                                <td className="px-8 py-5 text-right">
-                                  <Button size="sm" variant="ghost" className="rounded-xl font-bold text-muted-foreground hover:text-foreground hover:bg-primary transition-all px-4">Initialize Profile</Button>
+                                  <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                                     <a
+                                       href={`/chat/${p.id}`}
+                                       className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 transition-colors"
+                                     >
+                                       <MessageSquare size={14} />
+                                       Chat
+                                     </a>
+                                     <Button size="sm" variant="ghost" className="rounded-xl font-bold text-muted-foreground hover:text-foreground hover:bg-primary transition-all px-4">Initialize Profile</Button>
+                                  </div>
                                </td>
                             </tr>
                           ))

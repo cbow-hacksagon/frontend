@@ -10,6 +10,8 @@ interface AgentImage {
 }
 
 interface AgentState {
+  patient_id?: string;
+  patient_name?: string;
   Imaging?: AgentImage[];
 }
 
@@ -92,7 +94,11 @@ export function ImageChatPopup() {
       description: description.trim(),
     };
 
-    setState({ Imaging: [...images, newImage] });
+    setState({
+      patient_id: state.patient_id,
+      patient_name: state.patient_name,
+      Imaging: [...images, newImage],
+    });
 
     setPreview(null);
     setBase64(null);
