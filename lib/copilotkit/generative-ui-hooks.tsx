@@ -28,4 +28,21 @@ export const useGenerativeUIHooks = () => {
     },
     [theme, setTheme],
   );
+
+  useFrontendTool(
+    {
+      name: "submitRareDiseaseAnswers",
+      description:
+        "Submit answers to rare disease scan follow-up questions. Answers are sent back to the agent for re-scanning.",
+      parameters: z.object({
+        answers: z.record(z.string()),
+      }),
+      handler: async ({ answers }) => {
+        const { useCoAgent } = await import("@copilotkit/react-core");
+        console.log("Rare disease answers submitted:", answers);
+        return { success: true, answers };
+      },
+    },
+    [],
+  );
 };

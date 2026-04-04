@@ -7,13 +7,40 @@ import { CopilotChat } from "@copilotkit/react-core/v2";
 import { useCoAgent } from "@copilotkit/react-core";
 import { ImageChatPopup } from "@/components/copilotkit/ImageChatPopup";
 import { DebugPanel } from "@/components/copilotkit/debug-panel";
+import { RareDiseasePanel } from "@/components/copilotkit/rare-disease-panel";
 import { createClient } from "@/utils/supabase/client";
 import { ArrowLeft, MessageSquare, Loader2 } from "lucide-react";
+
+interface RareDiseaseResults {
+  rare_disease_matches: Array<{
+    disease_name: string;
+    umls_cui: string;
+    mondo_id: string;
+    confidence: number;
+    llm_judgment: string;
+    llm_reasoning: string;
+    symptom_overlap_score: number;
+    matching_symptoms: string[];
+    missing_symptoms: { askable: string[]; diagnostic_tests: string[] };
+    relevant_treatments: string[];
+    contraindicated_treatments: string[];
+    rag_evidence_snippets: string[];
+  }>;
+  scan_summary: string;
+  recommendation: string;
+  has_askable_symptoms: boolean;
+  askable_questions: string[];
+  plausible_count: number;
+  uncertain_count: number;
+}
 
 interface AgentState {
   patient_id?: string;
   patient_name?: string;
   Imaging?: Array<{ id: number; base64: string; mimeType: string; description: string }>;
+  rare_disease_scan_results?: string;
+  rare_disease_user_answers?: string;
+  rare_disease_scan_complete?: boolean;
 }
 
 export default function PatientChatPage() {
@@ -25,11 +52,36 @@ export default function PatientChatPage() {
   const [patientName, setPatientName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [showRareDiseasePanel, setShowRareDiseasePanel] = useState(false);
+  const [rareDiseaseResults, setRareDiseaseResults] = useState<RareDiseaseResults | null>(null);
 
   const { state, setState } = useCoAgent<AgentState>({
     name: "default",
     initialState: { Imaging: [] },
   });
+
+  useEffect(() => {
+    const scanResults = state?.rare_disease_scan_results;
+    if (scanResults && scanResults !== state?.rare_disease_user_answers) {
+      try {
+        const parsed = JSON.parse(scanResults) as RareDiseaseResults;
+        setRareDiseaseResults(parsed);
+        setShowRareDiseasePanel(true);
+      } catch {
+        // Invalid JSON, ignore
+      }
+    }
+  }, [state?.rare_disease_scan_results, state?.rare_disease_user_answers]);
+
+  const handleRareDiseaseAnswers = (answers: Record<string, string>) => {
+    const answersJson = JSON.stringify(answers);
+    setState({
+      ...state,
+      rare_disease_user_answers: answersJson,
+      rare_disease_scan_complete: false,
+    });
+    setShowRareDiseasePanel(false);
+  };
 
   useEffect(() => {
     const fetchPatient = async () => {
@@ -116,6 +168,16 @@ export default function PatientChatPage() {
           }}
         />
       </div>
+
+      {showRareDiseasePanel && rareDiseaseResults && (
+        <div className="absolute inset-x-0 bottom-0 z-40 max-h-[70vh] overflow-auto bg-background/95 backdrop-blur-sm border-t border-border p-4">
+          <RareDiseasePanel
+            results={rareDiseaseResults}
+            onSubmitAnswers={rareDiseaseResults.has_askable_symptoms ? handleRareDiseaseAnswers : undefined}
+            onDismiss={() => setShowRareDiseasePanel(false)}
+          />
+        </div>
+      )}
 
       <ImageChatPopup />
       <DebugPanel />
