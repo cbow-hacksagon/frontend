@@ -29,7 +29,7 @@ export function DebugPanel() {
     const checkConnection = async () => {
       try {
         const start = Date.now();
-        const langgraphUrl = "http://localhost:8123";
+        const langgraphUrl = process.env.NEXT_PUBLIC_LANGGRAPH_DEPLOYMENT_URL || "http://localhost:8123";
         const response = await fetch(langgraphUrl, {
           method: "GET",
         });
@@ -46,7 +46,7 @@ export function DebugPanel() {
         }
       } catch {
         setConnectionStatus("error");
-        setConnectionError("LangGraph server not reachable at localhost:8123");
+        setConnectionError("LangGraph server not reachable");
       }
     };
 
@@ -128,7 +128,7 @@ export function DebugPanel() {
                 <div className="flex items-center justify-between">
                   <span className="text-gray-400">LangGraph Server</span>
                   <span className="text-yellow-400 truncate ml-2 max-w-[200px]">
-                    http://localhost:8123
+                    {process.env.NEXT_PUBLIC_LANGGRAPH_DEPLOYMENT_URL || "http://localhost:8123"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
