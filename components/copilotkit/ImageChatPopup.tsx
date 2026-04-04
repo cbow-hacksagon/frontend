@@ -33,6 +33,7 @@ export function ImageChatPopup() {
 
   const processFile = useCallback((file: File) => {
     setError(null);
+    console.log("Processing file:", file.name, file.type, file.size, "bytes");
 
     if (!file.type.startsWith("image/")) {
       setError(`Invalid file type: ${file.name}. Only images are accepted.`);
@@ -47,13 +48,29 @@ export function ImageChatPopup() {
     const reader = new FileReader();
     reader.onload = (e) => {
       const result = e.target?.result as string;
+      console.log("FileReader loaded, result length:", result.length);
       setPreview(result);
-      const [dataPrefix, rawBase64] = result.split(",");
-      const mimeMatch = dataPrefix.match(/data:(image\/\w+);base64/);
+      const commaIdx = result.indexOf(",");
+      if (commaIdx === -1) {
+        setError(`Failed to read ${file.name}: invalid data URL format`);
+        return;
+      }
+      const dataPrefix = result.substring(0, commaIdx);
+      const rawBase64 = result.substring(commaIdx + 1);
+      const mimeMatch = dataPrefix.match(/data:(image\/[\w+.-]+);base64/);
       setMimeType(mimeMatch ? mimeMatch[1] : "image/png");
       setBase64(rawBase64);
     };
-    reader.onerror = () => setError(`Failed to read ${file.name}`);
+    reader.onerror = () => {
+      const errMsg = reader.error ? reader.error.message : "Unknown error";
+      console.error("FileReader error:", reader.error);
+      setError(`Failed to read ${file.name}: ${errMsg}`);
+    };
+    reader.onabort = () => {
+      console.log("FileReader aborted for", file.name);
+      setError(`Reading ${file.name} was aborted`);
+    };
+    console.log("Starting FileReader.readAsDataURL");
     reader.readAsDataURL(file);
   }, []);
 

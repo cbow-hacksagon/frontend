@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAgent } from "@copilotkit/react-core/v2";
+import { useCopilotKit } from "@copilotkit/react-core/v2";
 
 type Section = "state" | "messages" | "imaging" | "connection";
+
+type ConnectionStatus = "disconnected" | "connecting" | "connected" | "error";
 
 export function DebugPanel() {
   const [open, setOpen] = useState(false);
@@ -11,6 +14,46 @@ export function DebugPanel() {
     new Set(["state", "messages", "imaging", "connection"])
   );
   const { agent } = useAgent();
+  const copilotKit = useCopilotKit();
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("connecting");
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [lastPing, setLastPing] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!copilotKit) {
+      setConnectionStatus("disconnected");
+      setConnectionError("CopilotKit context not found");
+      return;
+    }
+
+    const checkConnection = async () => {
+      try {
+        const start = Date.now();
+        const langgraphUrl = "http://localhost:8123";
+        const response = await fetch(langgraphUrl, {
+          method: "GET",
+        });
+
+        const elapsed = Date.now() - start;
+        setLastPing(elapsed);
+
+        if (response.ok) {
+          setConnectionStatus("connected");
+          setConnectionError(null);
+        } else {
+          setConnectionStatus("error");
+          setConnectionError(`HTTP ${response.status}: ${response.statusText}`);
+        }
+      } catch {
+        setConnectionStatus("error");
+        setConnectionError("LangGraph server not reachable at localhost:8123");
+      }
+    };
+
+    checkConnection();
+    const interval = setInterval(checkConnection, 5000);
+    return () => clearInterval(interval);
+  }, [copilotKit]);
 
   const toggleSection = (section: Section) => {
     setExpandedSections((prev) => {
@@ -27,6 +70,15 @@ export function DebugPanel() {
   const stateKeys = agent.state ? Object.keys(agent.state) : [];
   const messages = agent.messages || [];
   const imaging = (agent.state?.Imaging as Array<{ id: number; description: string }> | undefined) ?? [];
+
+  const connectionStatusConfig = {
+    disconnected: { color: "text-gray-500", dot: "bg-gray-500", label: "Disconnected", animate: false },
+    connecting: { color: "text-yellow-400", dot: "bg-yellow-400", label: "Connecting...", animate: true },
+    connected: { color: "text-green-400", dot: "bg-green-500", label: "Connected", animate: false },
+    error: { color: "text-red-400", dot: "bg-red-500", label: "Connection Error", animate: true },
+  };
+
+  const statusConfig = connectionStatusConfig[connectionStatus];
 
   const sectionButton = (section: Section, label: string, color: string) => (
     <button
@@ -74,20 +126,32 @@ export function DebugPanel() {
             {expandedSections.has("connection") && (
               <div className="bg-black/40 rounded-lg p-3 space-y-2 text-[10px]">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Runtime URL</span>
+                  <span className="text-gray-400">LangGraph Server</span>
                   <span className="text-yellow-400 truncate ml-2 max-w-[200px]">
-                    {process.env.NEXT_PUBLIC_COPILOTKIT_RUNTIME_URL || "/api/copilotkit"}
+                    http://localhost:8123
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-400">Status</span>
                   <span className="flex items-center gap-1">
-                    <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                    <span className="text-green-400">Connected</span>
+                    <span className={`inline-block w-2 h-2 rounded-full ${statusConfig.dot} ${statusConfig.animate ? "animate-pulse" : ""}`} />
+                    <span className={statusConfig.color}>{statusConfig.label}</span>
                   </span>
                 </div>
+                {lastPing !== null && connectionStatus === "connected" && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-400">Latency</span>
+                    <span className="text-green-400">{lastPing}ms</span>
+                  </div>
+                )}
+                {connectionError && (
+                  <div className="bg-red-500/10 border border-red-500/30 rounded p-2">
+                    <p className="text-red-400 font-bold mb-1">Error:</p>
+                    <p className="text-red-300 break-all">{connectionError}</p>
+                  </div>
+                )}
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Agent</span>
+                  <span className="text-gray-400">Agent Type</span>
                   <span className="text-yellow-400">LangGraph</span>
                 </div>
               </div>
@@ -104,6 +168,11 @@ export function DebugPanel() {
                     <span className="inline-block h-3 w-3 rounded-full border-2 border-yellow-400 border-t-transparent animate-spin" />
                     <span className="text-yellow-400 font-bold">AGENT RUNNING</span>
                   </>
+                ) : connectionStatus === "disconnected" || connectionStatus === "error" ? (
+                  <>
+                    <span className="inline-block h-3 w-3 rounded-full bg-red-500" />
+                    <span className="text-red-400 font-bold">AGENT UNREACHABLE</span>
+                  </>
                 ) : (
                   <>
                     <span className="inline-block h-3 w-3 rounded-full bg-green-500" />
@@ -111,6 +180,13 @@ export function DebugPanel() {
                   </>
                 )}
               </div>
+              {connectionStatus !== "connected" && connectionStatus !== "connecting" && (
+                <p className="text-gray-500 text-[10px] mt-2">
+                  {connectionStatus === "disconnected"
+                    ? "CopilotKit provider not initialized"
+                    : "Cannot determine agent status — connection failed"}
+                </p>
+              )}
             </div>
 
             {/* State Keys */}

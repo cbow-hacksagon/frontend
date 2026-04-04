@@ -1,9 +1,9 @@
 "use client";
 
-import { CopilotChat } from "@copilotkit/react-ui";
+import { useGenerativeUIHooks } from "@/lib/copilotkit/generative-ui-hooks";
+import { CopilotChat } from "@copilotkit/react-core/v2";
 import { ImageChatPopup } from "@/components/copilotkit/ImageChatPopup";
 import { DebugPanel } from "@/components/copilotkit/debug-panel";
-import { useGenerativeUIHooks } from "@/lib/copilotkit/generative-ui-hooks";
 
 export default function ChatPage() {
   useGenerativeUIHooks();
@@ -11,7 +11,12 @@ export default function ChatPage() {
   return (
     <div className="relative flex flex-col h-screen">
       <div className="flex-1 overflow-hidden">
-        <CopilotChat />
+        <CopilotChat
+          input={{
+            disclaimer: () => null,
+            className: "pb-6",
+          }}
+        />
       </div>
 
       <ImageChatPopup />

@@ -29,6 +29,10 @@ export const mockUseComponent = vi.fn()
 export const mockUseHumanInTheLoop = vi.fn()
 export const mockUseConfigureSuggestions = vi.fn()
 
+export const mockUseCopilotKit = vi.fn().mockReturnValue({
+  runtimeUrl: '/api/copilotkit',
+})
+
 vi.mock('@copilotkit/react-core/v2', () => ({
   useAgent: (...args: unknown[]) => mockUseAgent(...args),
   useCoAgent: (...args: unknown[]) => mockUseCoAgent(...args),
@@ -37,6 +41,7 @@ vi.mock('@copilotkit/react-core/v2', () => ({
   useComponent: (...args: unknown[]) => mockUseComponent(...args),
   useHumanInTheLoop: (...args: unknown[]) => mockUseHumanInTheLoop(...args),
   useConfigureSuggestions: (...args: unknown[]) => mockUseConfigureSuggestions(...args),
+  useCopilotKit: () => mockUseCopilotKit(),
 }))
 
 vi.mock('@copilotkit/react-core', () => ({
