@@ -15,6 +15,10 @@ import {
   X,
   Send,
   Sparkles,
+  FilterX,
+  Link2Off,
+  Database,
+  Percent,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -38,8 +42,22 @@ interface RareDiseaseMatch {
   rag_evidence_snippets: string[];
 }
 
+interface FlaggedDisease {
+  disease_name: string;
+  umls_cui: string;
+  mondo_id: string | null;
+  status: "selected" | "eliminated";
+  elimination_stage: string | null;
+  elimination_reason: string | null;
+  confidence: number;
+  symptom_overlap_score: number;
+  llm_judgment: string | null;
+  llm_reasoning: string | null;
+}
+
 interface RareDiseaseResults {
   rare_disease_matches: RareDiseaseMatch[];
+  all_flagged_diseases: FlaggedDisease[];
   scan_summary: string;
   recommendation: string;
   has_askable_symptoms: boolean;
@@ -84,6 +102,33 @@ function judgmentBadge(judgment: string): { icon: React.ReactNode; color: string
     label: "Unlikely",
   };
 }
+
+const eliminationStageConfig: Record<string, { icon: React.ReactNode; label: string; color: string; bg: string }> = {
+  no_mondo_mapping: {
+    icon: <Link2Off className="w-3 h-3" />,
+    label: "No MONDO Mapping",
+    color: "text-muted-foreground",
+    bg: "bg-muted/30 border-border",
+  },
+  no_symptoms_in_kg: {
+    icon: <Database className="w-3 h-3" />,
+    label: "No KG Symptoms",
+    color: "text-muted-foreground",
+    bg: "bg-muted/30 border-border",
+  },
+  no_symptom_overlap: {
+    icon: <Percent className="w-3 h-3" />,
+    label: "No Symptom Overlap",
+    color: "text-amber-400",
+    bg: "bg-amber-500/10 border-amber-500/20",
+  },
+  llm_judged_implausible: {
+    icon: <FilterX className="w-3 h-3" />,
+    label: "Judged Implausible",
+    color: "text-red-400",
+    bg: "bg-red-500/10 border-red-500/20",
+  },
+};
 
 const DiseaseCard = memo(function DiseaseCard({
   match,
@@ -293,6 +338,115 @@ const DiseaseCard = memo(function DiseaseCard({
   );
 }, (prev, next) => prev.match === next.match && prev.index === next.index);
 
+const EliminatedDiseaseCard = memo(function EliminatedDiseaseCard({
+  disease,
+  index,
+}: {
+  disease: FlaggedDisease;
+  index: number;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const stageConfig = eliminationStageConfig[disease.elimination_stage || ""] || {
+    icon: <FilterX className="w-3 h-3" />,
+    label: "Eliminated",
+    color: "text-muted-foreground",
+    bg: "bg-muted/30 border-border",
+  };
+
+  const toggleExpanded = useCallback(() => {
+    setExpanded((prev) => !prev);
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+      className="bg-card/50 border border-border/50 rounded-2xl overflow-hidden"
+    >
+      <button
+        onClick={toggleExpanded}
+        className="w-full flex items-center justify-between p-4 hover:bg-muted/20 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-bold ${stageConfig.bg} ${stageConfig.color}`}>
+            {stageConfig.icon}
+            {stageConfig.label}
+          </div>
+          <div>
+            <h4 className="font-semibold text-foreground/70 text-sm tracking-tight">
+              {disease.disease_name}
+            </h4>
+            <p className="text-[10px] text-muted-foreground/60 font-mono mt-0.5">
+              UMLS: {disease.umls_cui}
+              {disease.mondo_id ? ` | MONDO: ${disease.mondo_id}` : ""}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="text-right">
+            <div className={`text-sm font-bold ${confidenceColor(disease.confidence)}`}>
+              {Math.round(disease.confidence * 100)}%
+            </div>
+            <div className="text-[9px] text-muted-foreground/60 uppercase tracking-wider font-bold">
+              FAISS
+            </div>
+          </div>
+          {expanded ? (
+            <ChevronUp className="w-4 h-4 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+          )}
+        </div>
+      </button>
+
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 pb-4 space-y-3 border-t border-border/50 pt-3">
+              <div>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                  Elimination Reason
+                </span>
+                <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+                  {disease.elimination_reason}
+                </p>
+              </div>
+
+              {disease.symptom_overlap_score > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                    Symptom Overlap
+                  </span>
+                  <span className="text-xs text-foreground/70">
+                    {Math.round(disease.symptom_overlap_score * 100)}%
+                  </span>
+                </div>
+              )}
+
+              {disease.llm_judgment && disease.llm_reasoning && (
+                <div className="bg-muted/20 rounded-xl p-3">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                    LLM Assessment
+                  </span>
+                  <p className="text-xs text-muted-foreground/80 italic leading-relaxed mt-1">
+                    "{disease.llm_reasoning}"
+                  </p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+});
+
 const AskableQuestions = memo(function AskableQuestions({
   questions,
   onSubmit,
@@ -357,9 +511,15 @@ export const RareDiseasePanel = memo(function RareDiseasePanel({
   onSubmitAnswers,
   onDismiss,
 }: RareDiseasePanelProps) {
-  const { rare_disease_matches, scan_summary, recommendation, has_askable_symptoms, askable_questions } = results;
+  const { rare_disease_matches, all_flagged_diseases, scan_summary, recommendation, has_askable_symptoms, askable_questions } = results;
 
-  const hasMatches = rare_disease_matches.length > 0;
+  const [activeTab, setActiveTab] = useState<"selected" | "eliminated">("selected");
+
+  const eliminated = (all_flagged_diseases || []).filter(d => d.status === "eliminated");
+  const selected = rare_disease_matches;
+
+  const hasMatches = selected.length > 0;
+  const hasEliminated = eliminated.length > 0;
 
   return (
     <div className="space-y-4 max-w-2xl mx-auto">
@@ -386,15 +546,63 @@ export const RareDiseasePanel = memo(function RareDiseasePanel({
         </p>
       </div>
 
-      {hasMatches && (
-        <div className="space-y-3">
-          {rare_disease_matches.map((match, i) => (
-            <DiseaseCard key={match.disease_name + i} match={match} index={i} />
-          ))}
-        </div>
-      )}
+      {hasMatches || hasEliminated ? (
+        <>
+          <div className="flex gap-1 bg-muted/30 rounded-xl p-1">
+            <button
+              onClick={() => setActiveTab("selected")}
+              className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all ${
+                activeTab === "selected"
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground/70"
+              }`}
+            >
+              Selected ({selected.length})
+            </button>
+            <button
+              onClick={() => setActiveTab("eliminated")}
+              className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all ${
+                activeTab === "eliminated"
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground/70"
+              }`}
+            >
+              Eliminated ({eliminated.length})
+            </button>
+          </div>
 
-      {!hasMatches && (
+          <AnimatePresence mode="wait">
+            {activeTab === "selected" && (
+              <motion.div
+                key="selected"
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 8 }}
+                transition={{ duration: 0.15 }}
+                className="space-y-3"
+              >
+                {selected.map((match, i) => (
+                  <DiseaseCard key={match.disease_name + i} match={match} index={i} />
+                ))}
+              </motion.div>
+            )}
+            {activeTab === "eliminated" && (
+              <motion.div
+                key="eliminated"
+                initial={{ opacity: 0, x: 8 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -8 }}
+                transition={{ duration: 0.15 }}
+                className="space-y-2"
+              >
+                {eliminated.map((disease, i) => (
+                  <EliminatedDiseaseCard key={disease.disease_name + disease.umls_cui + i} disease={disease} index={i} />
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </>
+      ) : (
         <div className="text-center py-8 bg-muted/20 rounded-2xl border border-dashed border-border">
           <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
           <p className="text-sm font-bold text-foreground">No Rare Disease Flags</p>

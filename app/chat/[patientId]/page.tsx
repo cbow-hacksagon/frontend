@@ -11,21 +11,37 @@ import { RareDiseasePanel } from "@/components/copilotkit/rare-disease-panel";
 import { createClient } from "@/utils/supabase/client";
 import { ArrowLeft, MessageSquare, Loader2 } from "lucide-react";
 
+interface RareDiseaseMatch {
+  disease_name: string;
+  umls_cui: string;
+  mondo_id: string;
+  confidence: number;
+  llm_judgment: string;
+  llm_reasoning: string;
+  symptom_overlap_score: number;
+  matching_symptoms: string[];
+  missing_symptoms: { askable: string[]; diagnostic_tests: string[] };
+  relevant_treatments: string[];
+  contraindicated_treatments: string[];
+  rag_evidence_snippets: string[];
+}
+
+interface FlaggedDisease {
+  disease_name: string;
+  umls_cui: string;
+  mondo_id: string | null;
+  status: "selected" | "eliminated";
+  elimination_stage: string | null;
+  elimination_reason: string | null;
+  confidence: number;
+  symptom_overlap_score: number;
+  llm_judgment: string | null;
+  llm_reasoning: string | null;
+}
+
 interface RareDiseaseResults {
-  rare_disease_matches: Array<{
-    disease_name: string;
-    umls_cui: string;
-    mondo_id: string;
-    confidence: number;
-    llm_judgment: string;
-    llm_reasoning: string;
-    symptom_overlap_score: number;
-    matching_symptoms: string[];
-    missing_symptoms: { askable: string[]; diagnostic_tests: string[] };
-    relevant_treatments: string[];
-    contraindicated_treatments: string[];
-    rag_evidence_snippets: string[];
-  }>;
+  rare_disease_matches: RareDiseaseMatch[];
+  all_flagged_diseases: FlaggedDisease[];
   scan_summary: string;
   recommendation: string;
   has_askable_symptoms: boolean;
