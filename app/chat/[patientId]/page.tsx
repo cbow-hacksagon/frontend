@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { Suspense, lazy } from "react";
 import { useGenerativeUIHooks } from "@/lib/copilotkit/generative-ui-hooks";
 import { CopilotChat } from "@copilotkit/react-core/v2";
 import { useCoAgent } from "@copilotkit/react-core";
 import { ImageChatPopup } from "@/components/copilotkit/ImageChatPopup";
-import { DebugPanel } from "@/components/copilotkit/debug-panel";
 import { RareDiseasePanel } from "@/components/copilotkit/rare-disease-panel";
 import { createClient } from "@/utils/supabase/client";
 import { ArrowLeft, MessageSquare, Loader2 } from "lucide-react";
@@ -43,6 +43,21 @@ interface AgentState {
   rare_disease_scan_complete?: boolean;
 }
 
+const DebugPanel = lazy(() => import("@/components/copilotkit/debug-panel").then((mod) => ({ default: mod.DebugPanel })));
+
+function ChatArea() {
+  return (
+    <div className="flex-1 overflow-hidden">
+      <CopilotChat
+        input={{
+          disclaimer: () => null,
+          className: "pb-6",
+        }}
+      />
+    </div>
+  );
+}
+
 export default function PatientChatPage() {
   useGenerativeUIHooks();
   const router = useRouter();
@@ -54,6 +69,7 @@ export default function PatientChatPage() {
   const [error, setError] = useState(false);
   const [showRareDiseasePanel, setShowRareDiseasePanel] = useState(false);
   const [rareDiseaseResults, setRareDiseaseResults] = useState<RareDiseaseResults | null>(null);
+  const [showDebugPanel, setShowDebugPanel] = useState(false);
 
   const { state, setState } = useCoAgent<AgentState>({
     name: "default",
@@ -73,7 +89,7 @@ export default function PatientChatPage() {
     }
   }, [state?.rare_disease_scan_results, state?.rare_disease_user_answers]);
 
-  const handleRareDiseaseAnswers = (answers: Record<string, string>) => {
+  const handleRareDiseaseAnswers = useCallback((answers: Record<string, string>) => {
     const answersJson = JSON.stringify(answers);
     setState({
       ...state,
@@ -81,7 +97,7 @@ export default function PatientChatPage() {
       rare_disease_scan_complete: false,
     });
     setShowRareDiseasePanel(false);
-  };
+  }, [state, setState]);
 
   useEffect(() => {
     const fetchPatient = async () => {
@@ -109,6 +125,10 @@ export default function PatientChatPage() {
 
     fetchPatient();
   }, [patientId]);
+
+  const handleToggleDebug = useCallback(() => {
+    setShowDebugPanel((prev) => !prev);
+  }, []);
 
   if (loading) {
     return (
@@ -158,16 +178,18 @@ export default function PatientChatPage() {
           <span className="font-bold text-foreground text-sm tracking-tight">{patientName}</span>
           <span className="text-[10px] text-muted-foreground font-mono">ID: {patientId.slice(0, 8)}</span>
         </div>
+        <div className="ml-auto">
+          <button
+            onClick={handleToggleDebug}
+            className="p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground text-xs font-mono"
+            title="Toggle debug panel"
+          >
+            {showDebugPanel ? "✕" : "🐛"}
+          </button>
+        </div>
       </header>
 
-      <div className="flex-1 overflow-hidden">
-        <CopilotChat
-          input={{
-            disclaimer: () => null,
-            className: "pb-6",
-          }}
-        />
-      </div>
+      <ChatArea />
 
       {showRareDiseasePanel && rareDiseaseResults && (
         <div className="absolute inset-x-0 bottom-0 z-40 max-h-[70vh] overflow-auto bg-background/95 backdrop-blur-sm border-t border-border p-4">
@@ -180,7 +202,12 @@ export default function PatientChatPage() {
       )}
 
       <ImageChatPopup />
-      <DebugPanel />
+
+      {showDebugPanel && (
+        <Suspense fallback={<div className="fixed inset-0 z-50" />}>
+          <DebugPanel />
+        </Suspense>
+      )}
     </div>
   );
 }

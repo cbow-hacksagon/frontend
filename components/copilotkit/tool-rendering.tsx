@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { memo, useEffect, useMemo, useRef } from "react";
 
 interface ToolReasoningProps {
   name: string;
@@ -26,8 +26,11 @@ function formatValue(value: unknown): string {
   return String(value);
 }
 
-export function ToolReasoning({ name, args, status }: ToolReasoningProps) {
-  const entries = args ? Object.entries(args as Record<string, unknown>) : [];
+export const ToolReasoning = memo(function ToolReasoning({ name, args, status }: ToolReasoningProps) {
+  const entries = useMemo(
+    () => (args ? Object.entries(args as Record<string, unknown>) : []),
+    [args]
+  );
   const detailsRef = useRef<HTMLDetailsElement>(null);
   const toolStatus = status as "complete" | "inProgress" | "executing";
 
@@ -64,4 +67,4 @@ export function ToolReasoning({ name, args, status }: ToolReasoningProps) {
       )}
     </div>
   );
-}
+}, (prev, next) => prev.status === next.status && prev.name === next.name && prev.args === next.args);

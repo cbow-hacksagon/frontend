@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { z } from "zod";
 import { useTheme } from "@/lib/copilotkit/theme-provider";
 import {
@@ -10,6 +11,8 @@ import { ToolReasoning } from "@/components/copilotkit/tool-rendering";
 
 export const useGenerativeUIHooks = () => {
   const { theme, setTheme } = useTheme();
+  const themeRef = useRef(theme);
+  themeRef.current = theme;
 
   useDefaultRenderTool({
     render: ({ name, status, parameters }) => {
@@ -23,10 +26,11 @@ export const useGenerativeUIHooks = () => {
       description: "Frontend tool for toggling the theme of the app.",
       parameters: z.object({}),
       handler: async () => {
-        setTheme(theme === "dark" ? "light" : "dark");
+        const currentTheme = themeRef.current;
+        setTheme(currentTheme === "dark" ? "light" : "dark");
       },
     },
-    [theme, setTheme],
+    [setTheme],
   );
 
   useFrontendTool(
@@ -38,8 +42,6 @@ export const useGenerativeUIHooks = () => {
         answers: z.record(z.string()),
       }),
       handler: async ({ answers }) => {
-        const { useCoAgent } = await import("@copilotkit/react-core");
-        console.log("Rare disease answers submitted:", answers);
         return { success: true, answers };
       },
     },

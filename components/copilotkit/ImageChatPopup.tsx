@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useCallback } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useCoAgent } from "@copilotkit/react-core";
 
 interface AgentImage {
@@ -34,11 +34,11 @@ export function ImageChatPopup() {
     initialState: { Imaging: [] },
   });
 
-  const images = state.Imaging ?? [];
+  const images = useMemo(() => state.Imaging ?? [], [state.Imaging]);
+  const imageCount = images.length;
 
   const processFile = useCallback((file: File) => {
     setError(null);
-    console.log("Processing file:", file.name, file.type, file.size, "bytes");
 
     if (!file.type.startsWith("image/")) {
       setError(`Invalid file type: ${file.name}. Only images are accepted.`);
@@ -53,7 +53,6 @@ export function ImageChatPopup() {
     const reader = new FileReader();
     reader.onload = (e) => {
       const result = e.target?.result as string;
-      console.log("FileReader loaded, result length:", result.length);
       setPreview(result);
       const commaIdx = result.indexOf(",");
       if (commaIdx === -1) {
@@ -68,30 +67,27 @@ export function ImageChatPopup() {
     };
     reader.onerror = () => {
       const errMsg = reader.error ? reader.error.message : "Unknown error";
-      console.error("FileReader error:", reader.error);
       setError(`Failed to read ${file.name}: ${errMsg}`);
     };
     reader.onabort = () => {
-      console.log("FileReader aborted for", file.name);
       setError(`Reading ${file.name} was aborted`);
     };
-    console.log("Starting FileReader.readAsDataURL");
     reader.readAsDataURL(file);
   }, []);
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragging(false);
     const file = e.dataTransfer.files?.[0];
     if (file) processFile(file);
-  };
+  }, [processFile]);
 
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     if (!base64 || !description.trim()) return;
     setSubmitting(true);
 
     const newImage: AgentImage = {
-      id: images.length + 1,
+      id: imageCount + 1,
       base64,
       mimeType: mimeType || "image/png",
       description: description.trim(),
@@ -108,20 +104,32 @@ export function ImageChatPopup() {
     setDescription("");
     setSubmitting(false);
     setOpen(false);
-  };
+  }, [base64, description, imageCount, images, mimeType, state, setState]);
 
-  const clearImage = () => {
+  const clearImage = useCallback(() => {
     setPreview(null);
     setBase64(null);
     setMimeType(null);
     setError(null);
     if (inputRef.current) inputRef.current.value = "";
-  };
+  }, []);
 
-  return (
-    <>
+  const handleClose = useCallback(() => {
+    setOpen(false);
+    clearImage();
+    setDescription("");
+  }, [clearImage]);
+
+  const toggleOpen = useCallback(() => {
+    setOpen((p) => !p);
+  }, []);
+
+  const imageIds = useMemo(() => images.map((i) => i.id), [images]);
+
+  if (!open) {
+    return (
       <button
-        onClick={() => setOpen((p) => !p)}
+        onClick={toggleOpen}
         aria-label="Upload image"
         style={{
           position: "fixed",
@@ -147,7 +155,7 @@ export function ImageChatPopup() {
           <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
           <path d="M21 15l-5-5L5 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
-        {images.length > 0 && (
+        {imageCount > 0 && (
           <span style={{
             position: "absolute",
             top: "-4px",
@@ -160,175 +168,222 @@ export function ImageChatPopup() {
             borderRadius: "50%",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
-            {images.length}
+            {imageCount}
+          </span>
+        )}
+      </button>
+    );
+  }
+
+  return (
+    <>
+      <button
+        onClick={toggleOpen}
+        aria-label="Upload image"
+        style={{
+          position: "fixed",
+          bottom: "24px",
+          right: "24px",
+          width: "48px",
+          height: "48px",
+          borderRadius: "50%",
+          background: "var(--primary)",
+          color: "var(--primary-foreground)",
+          border: "none",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1000,
+          boxShadow: "0 2px 12px rgba(0,0,0,0.18)",
+          transition: "opacity 0.15s ease",
+        }}
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
+          <path d="M21 15l-5-5L5 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        {imageCount > 0 && (
+          <span style={{
+            position: "absolute",
+            top: "-4px",
+            right: "-4px",
+            background: "var(--destructive)",
+            color: "var(--destructive-foreground)",
+            fontSize: "10px",
+            fontWeight: 700,
+            width: "18px", height: "18px",
+            borderRadius: "50%",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            {imageCount}
           </span>
         )}
       </button>
 
-      {open && (
+      <div style={{
+        position: "fixed",
+        bottom: "84px",
+        right: "24px",
+        width: "min(380px, calc(100vw - 32px))",
+        borderRadius: "14px",
+        border: "0.5px solid var(--border)",
+        background: "var(--card)",
+        zIndex: 999,
+        overflow: "hidden",
+        boxShadow: "0 8px 32px rgba(0,0,0,0.14)",
+      }}>
         <div style={{
-          position: "fixed",
-          bottom: "84px",
-          right: "24px",
-          width: "min(380px, calc(100vw - 32px))",
-          borderRadius: "14px",
-          border: "0.5px solid var(--border)",
-          background: "var(--card)",
-          zIndex: 999,
-          overflow: "hidden",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.14)",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "12px 16px",
+          borderBottom: "0.5px solid var(--border)",
         }}>
-          <div style={{
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-            padding: "12px 16px",
-            borderBottom: "0.5px solid var(--border)",
-          }}>
-            <span style={{ fontSize: "13px", fontWeight: 500, color: "var(--foreground)" }}>
-              Add image to agent
-            </span>
-            <button
-              aria-label="Close"
-              onClick={() => { setOpen(false); clearImage(); setDescription(""); }}
-              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted-foreground)", padding: "2px" }}
-            >
-              <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                <path d="M1 1l11 11M12 1L1 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
-            </button>
-          </div>
+          <span style={{ fontSize: "13px", fontWeight: 500, color: "var(--foreground)" }}>
+            Add image to agent
+          </span>
+          <button
+            aria-label="Close"
+            onClick={handleClose}
+            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted-foreground)", padding: "2px" }}
+          >
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+              <path d="M1 1l11 11M12 1L1 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          </button>
+        </div>
 
-          <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: "12px" }}>
+        <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: "12px" }}>
 
-            {error && (
-              <div style={{
-                padding: "8px 10px",
-                borderRadius: "8px",
-                background: "var(--destructive)",
-                color: "var(--destructive-foreground)",
-                fontSize: "12px",
-                fontWeight: 500,
-              }}>
-                {error}
-              </div>
-            )}
+          {error && (
+            <div style={{
+              padding: "8px 10px",
+              borderRadius: "8px",
+              background: "var(--destructive)",
+              color: "var(--destructive-foreground)",
+              fontSize: "12px",
+              fontWeight: 500,
+            }}>
+              {error}
+            </div>
+          )}
 
-            {preview ? (
-              <div style={{ position: "relative" }}>
-                <img
-                  src={preview}
-                  alt="preview"
-                  style={{
-                    width: "100%",
-                    maxHeight: "180px",
-                    objectFit: "cover",
-                    borderRadius: "8px",
-                    border: "0.5px solid var(--border)",
-                    display: "block",
-                  }}
-                />
-                <button
-                  aria-label="Remove"
-                  onClick={clearImage}
-                  style={{
-                    position: "absolute", top: "6px", right: "6px",
-                    width: "22px", height: "22px",
-                    borderRadius: "50%",
-                    background: "rgba(0,0,0,0.55)",
-                    border: "none", cursor: "pointer",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}
-                >
-                  <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
-                    <path d="M1 1l7 7M8 1L1 8" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/>
-                  </svg>
-                </button>
-              </div>
-            ) : (
-              <div
-                onClick={() => inputRef.current?.click()}
-                onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-                onDragLeave={() => setDragging(false)}
-                onDrop={handleDrop}
+          {preview ? (
+            <div style={{ position: "relative" }}>
+              <img
+                src={preview}
+                alt="preview"
                 style={{
-                  padding: "28px 16px",
-                  border: `1.5px dashed ${dragging ? "var(--ring)" : "var(--border)"}`,
+                  width: "100%",
+                  maxHeight: "180px",
+                  objectFit: "cover",
                   borderRadius: "8px",
-                  textAlign: "center",
-                  cursor: "pointer",
-                  background: dragging ? "var(--accent)" : "transparent",
-                  transition: "all 0.15s ease",
+                  border: "0.5px solid var(--border)",
+                  display: "block",
+                }}
+              />
+              <button
+                aria-label="Remove"
+                onClick={clearImage}
+                style={{
+                  position: "absolute", top: "6px", right: "6px",
+                  width: "22px", height: "22px",
+                  borderRadius: "50%",
+                  background: "rgba(0,0,0,0.55)",
+                  border: "none", cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
                 }}
               >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-                  style={{ margin: "0 auto 8px", display: "block", color: "var(--muted-foreground)" }}>
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                  <polyline points="17 8 12 3 7 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+                  <path d="M1 1l7 7M8 1L1 8" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/>
                 </svg>
-                <p style={{ fontSize: "12px", color: "var(--muted-foreground)", margin: 0 }}>
-                  Drop image or{" "}
-                  <span style={{ color: "var(--foreground)", fontWeight: 500 }}>click to browse</span>
-                </p>
-                <input
-                  ref={inputRef}
-                  type="file"
-                  accept="image/*"
-                  style={{ display: "none" }}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) processFile(file);
-                  }}
-                />
-              </div>
-            )}
-
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe this image (e.g. chest X-ray showing..."
-              rows={3}
+              </button>
+            </div>
+          ) : (
+            <div
+              onClick={() => inputRef.current?.click()}
+              onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+              onDragLeave={() => setDragging(false)}
+              onDrop={handleDrop}
               style={{
-                width: "100%",
-                resize: "none",
-                fontSize: "13px",
-                padding: "8px 10px",
+                padding: "28px 16px",
+                border: `1.5px dashed ${dragging ? "var(--ring)" : "var(--border)"}`,
                 borderRadius: "8px",
-                border: "0.5px solid var(--border)",
-                background: "var(--input)",
-                color: "var(--foreground)",
-                outline: "none",
-                boxSizing: "border-box",
-              }}
-            />
-
-            {images.length > 0 && (
-              <p style={{ fontSize: "11px", color: "var(--muted-foreground)", margin: 0 }}>
-                {images.length} image{images.length > 1 ? "s" : ""} already in agent state
-                (ID{images.length > 1 ? "s" : ""} {images.map((i) => i.id).join(", ")})
-              </p>
-            )}
-
-            <button
-              onClick={handleSubmit}
-              disabled={!base64 || !description.trim() || submitting}
-              style={{
-                width: "100%",
-                padding: "9px",
-                borderRadius: "8px",
-                background: !base64 || !description.trim() ? "var(--muted)" : "var(--primary)",
-                color: !base64 || !description.trim() ? "var(--muted-foreground)" : "var(--primary-foreground)",
-                border: "none",
-                cursor: !base64 || !description.trim() ? "not-allowed" : "pointer",
-                fontSize: "13px",
-                fontWeight: 500,
+                textAlign: "center",
+                cursor: "pointer",
+                background: dragging ? "var(--accent)" : "transparent",
                 transition: "all 0.15s ease",
               }}
             >
-              {submitting ? "Adding..." : "Add to agent state"}
-            </button>
-          </div>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                style={{ margin: "0 auto 8px", display: "block", color: "var(--muted-foreground)" }}>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                <polyline points="17 8 12 3 7 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+              <p style={{ fontSize: "12px", color: "var(--muted-foreground)", margin: 0 }}>
+                Drop image or{" "}
+                <span style={{ color: "var(--foreground)", fontWeight: 500 }}>click to browse</span>
+              </p>
+              <input
+                ref={inputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) processFile(file);
+                }}
+              />
+            </div>
+          )}
+
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Describe this image (e.g. chest X-ray showing..."
+            rows={3}
+            style={{
+              width: "100%",
+              resize: "none",
+              fontSize: "13px",
+              padding: "8px 10px",
+              borderRadius: "8px",
+              border: "0.5px solid var(--border)",
+              background: "var(--input)",
+              color: "var(--foreground)",
+              outline: "none",
+              boxSizing: "border-box",
+            }}
+          />
+
+          {imageCount > 0 && (
+            <p style={{ fontSize: "11px", color: "var(--muted-foreground)", margin: 0 }}>
+              {imageCount} image{imageCount > 1 ? "s" : ""} already in agent state
+              (ID{imageCount > 1 ? "s" : ""} {imageIds.join(", ")})
+            </p>
+          )}
+
+          <button
+            onClick={handleSubmit}
+            disabled={!base64 || !description.trim() || submitting}
+            style={{
+              width: "100%",
+              padding: "9px",
+              borderRadius: "8px",
+              background: !base64 || !description.trim() ? "var(--muted)" : "var(--primary)",
+              color: !base64 || !description.trim() ? "var(--muted-foreground)" : "var(--primary-foreground)",
+              border: "none",
+              cursor: !base64 || !description.trim() ? "not-allowed" : "pointer",
+              fontSize: "13px",
+              fontWeight: 500,
+              transition: "all 0.15s ease",
+            }}
+          >
+            {submitting ? "Adding..." : "Add to agent state"}
+          </button>
         </div>
-      )}
+      </div>
     </>
   );
 }

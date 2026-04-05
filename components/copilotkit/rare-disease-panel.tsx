@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useCallback, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronDown,
@@ -85,7 +85,7 @@ function judgmentBadge(judgment: string): { icon: React.ReactNode; color: string
   };
 }
 
-function DiseaseCard({
+const DiseaseCard = memo(function DiseaseCard({
   match,
   index,
 }: {
@@ -95,6 +95,10 @@ function DiseaseCard({
   const [expanded, setExpanded] = useState(false);
   const badge = judgmentBadge(match.llm_judgment);
 
+  const toggleExpanded = useCallback(() => {
+    setExpanded((prev) => !prev);
+  }, []);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -103,7 +107,7 @@ function DiseaseCard({
       className="bg-card border border-border rounded-2xl overflow-hidden"
     >
       <button
-        onClick={() => setExpanded(!expanded)}
+        onClick={toggleExpanded}
         className="w-full flex items-center justify-between p-5 hover:bg-muted/30 transition-colors"
       >
         <div className="flex items-center gap-3">
@@ -287,9 +291,9 @@ function DiseaseCard({
       </AnimatePresence>
     </motion.div>
   );
-}
+}, (prev, next) => prev.match === next.match && prev.index === next.index);
 
-function AskableQuestions({
+const AskableQuestions = memo(function AskableQuestions({
   questions,
   onSubmit,
 }: {
@@ -298,9 +302,13 @@ function AskableQuestions({
 }) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
 
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     onSubmit(answers);
-  };
+  }, [onSubmit, answers]);
+
+  const handleAnswerChange = useCallback((q: string, value: string) => {
+    setAnswers((prev) => ({ ...prev, [q]: value }));
+  }, []);
 
   return (
     <motion.div
@@ -326,9 +334,7 @@ function AskableQuestions({
             <input
               type="text"
               value={answers[q] || ""}
-              onChange={(e) =>
-                setAnswers((prev) => ({ ...prev, [q]: e.target.value }))
-              }
+              onChange={(e) => handleAnswerChange(q, e.target.value)}
               placeholder="Your answer..."
               className="w-full h-10 px-3 rounded-xl bg-background border border-border text-xs text-foreground placeholder:text-muted-foreground/50 focus:border-primary outline-none transition-all"
             />
@@ -344,9 +350,9 @@ function AskableQuestions({
       </Button>
     </motion.div>
   );
-}
+});
 
-export function RareDiseasePanel({
+export const RareDiseasePanel = memo(function RareDiseasePanel({
   results,
   onSubmitAnswers,
   onDismiss,
@@ -417,4 +423,4 @@ export function RareDiseasePanel({
       )}
     </div>
   );
-}
+});
