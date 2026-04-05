@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useGenerativeUIHooks } from "@/lib/copilotkit/generative-ui-hooks";
 import { CopilotChat } from "@copilotkit/react-core/v2";
@@ -108,7 +108,7 @@ export default function PatientChatPage() {
     };
 
     fetchPatient();
-  }, [patientId, setState]);
+  }, [patientId]);
 
   if (loading) {
     return (

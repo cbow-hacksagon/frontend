@@ -13,6 +13,9 @@ interface AgentState {
   patient_id?: string;
   patient_name?: string;
   Imaging?: AgentImage[];
+  rare_disease_scan_results?: string;
+  rare_disease_user_answers?: string;
+  rare_disease_scan_complete?: boolean;
 }
 
 export function ImageChatPopup() {
@@ -95,8 +98,7 @@ export function ImageChatPopup() {
     };
 
     setState({
-      patient_id: state.patient_id,
-      patient_name: state.patient_name,
+      ...state,
       Imaging: [...images, newImage],
     });
 
